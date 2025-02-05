@@ -21,7 +21,14 @@ root = tree.getroot()
 
 # ______
 
-
+# Plot function for Line of Best Fit and R^2 value
+def plotLineOBF(x,y):
+  plt.scatter(x,y)
+  m,c=np.polyfit(x,y,1)
+  plt.plot(x,c+m*x)
+  print(r2_score(y,c+m*x))
+  plt.show()
+  return
 
 
 # StructureEnumeration - can be simple, Composite, or Chain
@@ -39,7 +46,7 @@ def getCWESimpleStableDraft():
 
 
 # Get all MITRE ATTACK Threat actor groups and how many Techniques associated with each
-def getThreatActorGroups():
+def threatsXgroups():
   store=[]
   x = np.array([])
   y=np.array([])
@@ -62,25 +69,30 @@ def getThreatActorGroups():
     x = np.append(x,len(technique))
     y = np.append(y,len(software))
     plt.annotate(externalID, (len(technique),len(software)))
+
   df = pd.DataFrame(store, columns=['ID','External ID', 'Group Name', 'Amount of Techniques','Amount of Software'])
   timeString = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
   title = "generated/ThreatActorGroups " + timeString + ".xlsx"
   df.to_excel(title, index=False)
 
-  # Below is for data visualisation:
-  # plots data, first creating a scatter plot, then adding a line of best fit and then printing the R squared value
-  plt.scatter(x,y)
-  m,c=np.polyfit(x,y,1)
-  plt.plot(x,c+m*x)
-  print(r2_score(y,c+m*x))
-
-  plt.show()
-
+  plotLineOBF(x,y)
   return
 
 
-def getCampaigns():
-  
+def campaignsXtechniques():
+  campaigns = mitreAttack.get_campaigns()
+  techniques = mitreAttack.get_all_techniques_used_by_all_campaigns()
+  for id, technique in techniques.items():
+    campaign = next((c for c in campaigns if c['id'] == id), None)
+    name = campaign['name'] if campaign else "*UNKNOWN CAMPAIGN NAME*"
+    groups = mitreAttack.get_groups_attributing_to_campaign(id)
+
+    print(f"ID: {id}, Campaign Name: {name}, Amount of Techniques: {len(technique)}")    
+    for group in groups:
+      print(f"Group: {group['object'].name}")  
+
+
+
   return
 
 
@@ -90,6 +102,6 @@ def getCampaigns():
 
 
 if __name__ == "__main__":
-  getThreatActorGroups()
-  
+  # threatsXgroups()
+  campaignsXtechniques()
 
