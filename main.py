@@ -1,3 +1,5 @@
+# Imports:
+from datetime import datetime
 import numpy as np
 import pandas as pd
 from mitreattack.stix20 import MitreAttackData
@@ -8,17 +10,16 @@ from sklearn.metrics import r2_score
 # Setup:
 
 # For Att&ck:
-mitreAttack = MitreAttackData("enterprise-attack.json")
+mitreAttack = MitreAttackData("datasets/enterprise-attack.json")
 
 # Documentation for the mitreattack lib https://mitreattack-python.readthedocs.io/en/latest/mitre_attack_data/examples.html
 
 # For CWE:
-tree = ET.parse('cwec_v4.16.xml')
+tree = ET.parse('datasets/cwec_v4.16.xml')
 root = tree.getroot()
 
 
 # ______
-
 
 
 
@@ -55,19 +56,31 @@ def getThreatActorGroups():
     # Gets the external ID which relates to the ID on the website rather than the long hex string
     externalID = group['external_references']if group else "*UNKNOWN GROUP ID*"
     externalID = externalID[0]['external_id']
-    print(f"ID: {id}, External ID: {externalID}, Group Name: {name}, Amount of Techniques associated with it: {len(technique)}, Amount of Software associated: {len(software)}")
+    print(f"ID: {id}, External ID: {externalID}, Group Name: {name}, Amount of Techniques associated: {len(technique)}, Amount of Software associated: {len(software)}")
     # Below is code for writing to an excel file
     store.append([id, externalID,name, len(technique),len(software)])
     x = np.append(x,len(technique))
     y = np.append(y,len(software))
     plt.annotate(externalID, (len(technique),len(software)))
   df = pd.DataFrame(store, columns=['ID','External ID', 'Group Name', 'Amount of Techniques','Amount of Software'])
-  df.to_excel('ThreatActorGroups.xlsx', index=False)
+  timeString = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+  title = "generated/ThreatActorGroups " + timeString + ".xlsx"
+  df.to_excel(title, index=False)
+
+  # Below is for data visualisation:
+  # plots data, first creating a scatter plot, then adding a line of best fit and then printing the R squared value
   plt.scatter(x,y)
   m,c=np.polyfit(x,y,1)
-  print(r2_score(y,c+m*x))
   plt.plot(x,c+m*x)
+  print(r2_score(y,c+m*x))
+
   plt.show()
+
+  return
+
+
+def getCampaigns():
+  
   return
 
 
