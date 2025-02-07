@@ -1,3 +1,7 @@
+# All required libraries are listed in the requirements.txt file
+# To install the required libraries, run the following command in the terminal:
+# pip install -r requirements.txt
+
 # Imports:
 from datetime import datetime
 import numpy as np
@@ -80,6 +84,7 @@ def threatsXgroups():
 
 
 def campaignsXtechniques():
+  store = []
   campaigns = mitreAttack.get_campaigns()
   techniques = mitreAttack.get_all_techniques_used_by_all_campaigns()
   for id, technique in techniques.items():
@@ -87,16 +92,25 @@ def campaignsXtechniques():
     name = campaign['name'] if campaign else "*UNKNOWN CAMPAIGN NAME*"
     groups = mitreAttack.get_groups_attributing_to_campaign(id)
 
-    print(f"ID: {id}, Campaign Name: {name}, Amount of Techniques: {len(technique)}")    
-    for group in groups:
-      print(f"Group: {group['object'].name}")  
+    print(f"ID: {id}, Campaign Name: {name}, Amount of Techniques: {len(technique)}, Assoicatated with a group?:",end=' ')    
+    if len(groups)!=0:
+      print("Yes")
 
+      store.append([id, name, len(technique), groups[0]['object'].name ])
 
-
+    else:
+      print("No")
+      store.append([id, name, len(technique), "*NOT ASSOCIATED WITH GROUP*"])
+      # print(f"Group: {group['object'].name}") 
+  df = pd.DataFrame(store, columns=['ID', 'Campaign Name', 'Amount of Techniques', 'Group Name'])
+  timeString = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+  title = "generated/Campaigns " + timeString + ".xlsx"
+  df.to_excel(title, index=False)
   return
 
 
 
+# Potential to look at groups associated with countries using a word algorithm to scan through the descriptions
 
 
 
