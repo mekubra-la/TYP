@@ -1,1 +1,7 @@
 generated/*
+datasets/cves/2020/*
+datasets/cves/2021/*
+datasets/cves/2022/*
+datasets/cves/2023/*
+datasets/cves/2024/*
+datasets/cves/2025/*
