@@ -1,1 +1,16 @@
 generated/*
+datasets/cves/2000/*
+datasets/cves/2001/*
+datasets/cves/2002/*
+datasets/cves/2003/*
+datasets/cves/2004/*
+datasets/cves/2005/*
+datasets/cves/2006/*
+datasets/cves/2007/*
+datasets/cves/2008/*
+datasets/cves/2020/*
+datasets/cves/2021/*
+datasets/cves/2022/*
+datasets/cves/2023/*
+datasets/cves/2024/*
+datasets/cves/2025/*
