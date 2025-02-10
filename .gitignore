@@ -1,4 +1,5 @@
 generated/*
+datasets/cves/1999/*
 datasets/cves/2000/*
 datasets/cves/2001/*
 datasets/cves/2002/*
