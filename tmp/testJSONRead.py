@@ -1,0 +1,26 @@
+import json
+import os
+# Currently returns in a tuple but doesn't like accessing files like that
+# for filename in os.walk('datasets/cves'):
+#     # print(filename)
+#     if filename[2][0].endswith(".json"):
+#         print(filename[1][0])
+#         data=json.load(open(filename))
+#         CVEs = data.get("containers", {}).get("cna",{}).get("problemTypes",[])
+#         for problem in CVEs:
+#             for description in problem.get("descriptions",[]):
+#                     cveID = data.get("cveMetadata",{}).get("cveId",[])
+#                     print(cveID)
+
+
+for root, dirs, files in os.walk("datasets/cves"):
+    for name in files:
+        pathInfo = os.path.join(root,name)
+        print(pathInfo)
+        if (pathInfo).endswith(".json"):
+            data=json.load(open(pathInfo))
+            CVEs = data.get("containers", {}).get("cna",{}).get("problemTypes",[])
+            for problem in CVEs:
+                for description in problem.get("descriptions",[]):
+                        cveID = data.get("cveMetadata",{}).get("cveId",[])
+                        print(cveID)
