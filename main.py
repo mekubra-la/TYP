@@ -10,6 +10,7 @@ from mitreattack.stix20 import MitreAttackData
 import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score
+import json
 
 # Setup:
 
@@ -113,9 +114,42 @@ def campaignsXtechniques():
 # Potential to look at groups associated with countries using a word algorithm to scan through the descriptions
 
 
+def getSpecificAttackFromCWE(CWE):
+  # Firstly grabs the name of the CWE from the given ID
+  for child in root:
+      if 'Weaknesses' in child.tag:
+        for child2 in child:
+            if child2.attrib['ID'] == CWE:
+              print(child2.attrib['Name'])
+
+  # TODO: Currently doesn't go through all the CVEs, make it iterate through all the files 2009-2019
+  # 
+  # This program only work on CVES between 2009 and 2019 
+  # Next it moves on to finding the associated CVE
+
+  data = json.load(open("datasets/cves/2019/1xxx/CVE-2019-1942.json",'r',encoding='utf-8'))
+  CVEs = data.get("containers", {}).get("cna",{}).get("problemTypes",[])
+  for problem in CVEs:
+    for description in problem.get("descriptions",[]):
+      if description.get("description", "")[4:] == CWE:
+        print("Found CVE")
+        cveID = data.get("cveMetadata",{}).get("cveId",[])
+        print(cveID)
+
+        break
+# Once it has found the related CVE, it will search the CVE - MITRE Mapping 
+  if cveID:
+    data = json.load(open("datasets/cve-10.21.2021_attack-9.0-enterprise_json.json",'r',encoding='utf-8'))
+    objects = data.get("mapping_objects",[])
+    for object in objects:
+      if cveID == object.get("capability_id",[]):
+        print("Found ATT&CK")
+        print(object.get("attack_object_id",[]))
+  return
 
 
 if __name__ == "__main__":
   # threatsXgroups()
-  campaignsXtechniques()
+  # campaignsXtechniques()
 
+  getSpecificAttackFromCWE('89')
