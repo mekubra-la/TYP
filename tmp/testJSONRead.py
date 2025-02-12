@@ -1,6 +1,10 @@
 import json
 import os
 # Currently returns in a tuple but doesn't like accessing files like that
+# This method of searching CVE is ineffective and makes the program extremely large.
+
+
+
 # for filename in os.walk('datasets/cves'):
 #     # print(filename)
 #     if filename[2][0].endswith(".json"):
