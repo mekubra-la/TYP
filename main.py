@@ -135,7 +135,6 @@ def getSpecificAttackFromCWE(CWE):
         print("Found CVE")
         cveID = data.get("cveMetadata",{}).get("cveId",[])
         print(cveID)
-
         break
 # Once it has found the related CVE, it will search the CVE - MITRE Mapping 
   if cveID:
