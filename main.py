@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score
 import json
+import os
 
 # Setup:
 
@@ -115,6 +116,8 @@ def campaignsXtechniques():
 
 
 def getSpecificAttackFromCWE(CWE):
+  tree = ET.parse('datasets/cwec_v4.16.xml')
+  root = tree.getroot()
   # Firstly grabs the name of the CWE from the given ID
   for child in root:
       if 'Weaknesses' in child.tag:
@@ -126,29 +129,35 @@ def getSpecificAttackFromCWE(CWE):
   # 
   # This program only work on CVES between 2009 and 2019 
   # Next it moves on to finding the associated CVE
+  cveList=[]
+  for root, dirs, files in os.walk("datasets/cves"):
+    for name in files:
+        pathInfo = os.path.join(root,name)
+        if (pathInfo).endswith(".json") and any(f"\\{year}\\" in pathInfo for year in range(2009, 2020)):
+            data=json.load(open(pathInfo, encoding='utf-8'))
+            CVEs = data.get("containers", {}).get("cna",{}).get("problemTypes",[])
+            for problem in CVEs:
+                for cweId in problem.get("descriptions",[]):
+                        if cweId.get("cweId", "")[4:] == CWE:
+                            cveList.append(data.get("cveMetadata",{}).get("cveId",[]))
+  print(cveList)
 
-  data = json.load(open("datasets/cves/2019/1xxx/CVE-2019-1942.json",'r',encoding='utf-8'))
-  CVEs = data.get("containers", {}).get("cna",{}).get("problemTypes",[])
-  for problem in CVEs:
-    for description in problem.get("descriptions",[]):
-      if description.get("description", "")[4:] == CWE:
-        print("Found CVE")
-        cveID = data.get("cveMetadata",{}).get("cveId",[])
-        print(cveID)
-        break
 # Once it has found the related CVE, it will search the CVE - MITRE Mapping 
-  if cveID:
+  tactics = []
+  for cveId in cveList:
     data = json.load(open("datasets/cve-10.21.2021_attack-9.0-enterprise_json.json",'r',encoding='utf-8'))
     objects = data.get("mapping_objects",[])
     for object in objects:
-      if cveID == object.get("capability_id",[]):
-        print("Found ATT&CK")
-        print(object.get("attack_object_id",[]))
+      if cveId == object.get("capability_id",[]):
+        if object.get("attack_object_id",[]) not in tactics:
+          tactics.append(object.get("attack_object_id",[]))
+  
+  print(tactics)  
   return
 
 
 if __name__ == "__main__":
   # threatsXgroups()
   # campaignsXtechniques()
-
-  getSpecificAttackFromCWE('89')
+  CWE = '121' #This is for specific CWE searching
+  getSpecificAttackFromCWE(CWE)

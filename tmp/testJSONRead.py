@@ -35,4 +35,3 @@ for root, dirs, files in os.walk("datasets/cves"):
                             cveID = data.get("cveMetadata",{}).get("cveId",[])
                             print(cveID)
 
-# NOTE THAT IS IT ALSO LISTED UNDER VALUE sometimes
