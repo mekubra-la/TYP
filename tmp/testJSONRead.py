@@ -22,15 +22,17 @@ for root, dirs, files in os.walk("datasets/cves"):
     for name in files:
         
         pathInfo = os.path.join(root,name)
-        if (pathInfo).endswith(".json") and any(f"\\{year}\\" in pathInfo for year in range(2009, 2020)):
+        if (pathInfo).endswith(".json") and any(f"\\{year}\\" in pathInfo for year in range(2019, 2020)):
             print(pathInfo)
             data=json.load(open(pathInfo, encoding='utf-8'))
             CVEs = data.get("containers", {}).get("cna",{}).get("problemTypes",[])
             for problem in CVEs:
                 for cweId in problem.get("descriptions",[]):
                         # print(data.get("cveMetadata",{}).get("cveId",[]))
-                        print(cweId.get("description", "")[4:])
-                        if cweId.get("description", "")[4:] == '89':
+                        print(cweId.get("cweId", "")[4:])
+                        if cweId.get("cweId", "")[4:] == '89':
                             print("IM A THING!!!")
                             cveID = data.get("cveMetadata",{}).get("cveId",[])
                             print(cveID)
+
+# NOTE THAT IS IT ALSO LISTED UNDER VALUE sometimes
