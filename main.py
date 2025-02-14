@@ -163,9 +163,10 @@ def getCWEsAttack():
         for child2 in child:
           cweList.append(child2.attrib['ID'])
     print(cweList)
-  cveDict = defaultdict(list)
 
 # For speed, this set of code reads all the cves into a dictionary with the key being the CWE Id associatied with it.
+  cveDict = defaultdict(list)
+
   for root, dirs, files in os.walk("datasets/cves"):
       for name in files:
         pathInfo = os.path.join(root,name)
@@ -177,8 +178,14 @@ def getCWEsAttack():
                     cveDict[str(cweId.get("cweId", "")[4:])].append(data.get("cveMetadata",{}).get("cveId",[]))   
                     
   print(cveDict)
+  store = []
+  for cweId, cveList in cveDict.items():
+     store.append([cweId,cveList])
 
-
+  df = pd.DataFrame(store, columns=['CWE ID', 'Attributed CVEs\'s'])
+  timeString = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+  title = "generated/CWEtoTTP " + timeString + ".xlsx"
+  df.to_excel(title, index=False)
   return
 
 
