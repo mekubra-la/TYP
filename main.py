@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score
 import json
 import os
-
+from collections import defaultdict
 # Setup:
 
 # For Att&ck:
@@ -20,9 +20,6 @@ mitreAttack = MitreAttackData("datasets/enterprise-attack.json")
 
 # Documentation for the mitreattack lib https://mitreattack-python.readthedocs.io/en/latest/mitre_attack_data/examples.html
 
-# For CWE:
-tree = ET.parse('datasets/cwec_v4.16.xml')
-root = tree.getroot()
 
 
 # ______
@@ -42,6 +39,8 @@ def plotLineOBF(x,y):
 
 # Get all CWEs that are simple and stable or draft
 def getCWESimpleStableDraft():
+  tree = ET.parse('datasets/cwec_v4.16.xml')
+  root = tree.getroot()
   for child in root:
       if 'Weaknesses' in child.tag:
         for child2 in child:
@@ -116,17 +115,15 @@ def campaignsXtechniques():
 
 
 def getSpecificAttackFromCWE(CWE):
-  tree = ET.parse('datasets/cwec_v4.16.xml')
-  root = tree.getroot()
-  # Firstly grabs the name of the CWE from the given ID
-  for child in root:
-      if 'Weaknesses' in child.tag:
-        for child2 in child:
-            if child2.attrib['ID'] == CWE:
-              print(child2.attrib['Name'])
+  # tree = ET.parse('datasets/cwec_v4.16.xml')
+  # root = tree.getroot()
+  # # Firstly grabs the name of the CWE from the given ID
+  # for child in root:
+  #     if 'Weaknesses' in child.tag:
+  #       for child2 in child:
+  #           if child2.attrib['ID'] == CWE:
+  #             print(child2.attrib['Name'])
 
-  # TODO: Currently doesn't go through all the CVEs, make it iterate through all the files 2009-2019
-  # 
   # This program only work on CVES between 2009 and 2019 
   # Next it moves on to finding the associated CVE
   cveList=[]
@@ -156,8 +153,40 @@ def getSpecificAttackFromCWE(CWE):
   return
 
 
+def getCWEsAttack():
+  tree = ET.parse('datasets/cwec_v4.16.xml')
+  root = tree.getroot()
+  cweList=[]
+  # Firstly grabs all the CWEs
+  for child in root:
+    if 'Weaknesses' in child.tag:
+        for child2 in child:
+          cweList.append(child2.attrib['ID'])
+    print(cweList)
+  cveDict = defaultdict(list)
+
+# For speed, this set of code reads all the cves into a dictionary with the key being the CWE Id associatied with it.
+  for root, dirs, files in os.walk("datasets/cves"):
+      for name in files:
+        pathInfo = os.path.join(root,name)
+        if (pathInfo).endswith(".json") and any(f"\\{year}\\" in pathInfo for year in range(2009, 2020)):
+            data=json.load(open(pathInfo, encoding='utf-8'))
+            CVEs = data.get("containers", {}).get("cna",{}).get("problemTypes",[])
+            for problem in CVEs:
+                for cweId in problem.get("descriptions",[]):
+                    cveDict[str(cweId.get("cweId", "")[4:])].append(data.get("cveMetadata",{}).get("cveId",[]))   
+                    
+  print(cveDict)
+
+
+  return
+
+
+
 if __name__ == "__main__":
   # threatsXgroups()
   # campaignsXtechniques()
-  CWE = '121' #This is for specific CWE searching
-  getSpecificAttackFromCWE(CWE)
+  # CWE = '121' #This is for specific CWE searching
+  # getSpecificAttackFromCWE(CWE)
+
+  getCWEsAttack()
