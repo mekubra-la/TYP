@@ -154,15 +154,7 @@ def getSpecificAttackFromCWE(CWE):
 
 
 def getCWEsAttack():
-  tree = ET.parse('datasets/cwec_v4.16.xml')
-  root = tree.getroot()
-  cweList=[]
-  # Firstly grabs all the CWEs
-  for child in root:
-    if 'Weaknesses' in child.tag:
-        for child2 in child:
-          cweList.append(child2.attrib['ID'])
-    print(cweList)
+# This function maps all the CWE's to Tactics from ATT&CK, however, the mappings between CVE to ATT&CK are lacking in amount, resulting in large amounts of CVE's with no assocaited Tactics
 
 # For speed, this set of code reads all the cves into a dictionary with the key being the CWE Id associatied with it.
   cveDict = defaultdict(list)
@@ -176,13 +168,24 @@ def getCWEsAttack():
             for problem in CVEs:
                 for cweId in problem.get("descriptions",[]):
                     cveDict[str(cweId.get("cweId", "")[4:])].append(data.get("cveMetadata",{}).get("cveId",[]))   
-                    
+                
   print(cveDict)
+  # Below extracts the CVE-ATT&CK Mapping into a dictionary to make it easier for analysis
+  AttackDict = defaultdict(list)
+  data = json.load(open("datasets/cve-10.21.2021_attack-9.0-enterprise_json.json",'r',encoding='utf-8'))
+  objects = data.get("mapping_objects",[])
+  for object in objects:
+      AttackDict[str(object.get("capability_id",[]))].append(object.get('attack_object_id',[]))
+
+  print(AttackDict)
+
   store = []
   for cweId, cveList in cveDict.items():
-     store.append([cweId,cveList])
-
-  df = pd.DataFrame(store, columns=['CWE ID', 'Attributed CVEs\'s'])
+    tempAttack = []
+    for cveId in cveList:
+        tempAttack.append(AttackDict[cveId])
+    store.append([cweId,cveList,tempAttack])
+  df = pd.DataFrame(store, columns=['CWE ID', 'Attributed CVEs','Attributed Tactics'])
   timeString = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
   title = "generated/CWEtoTTP " + timeString + ".xlsx"
   df.to_excel(title, index=False)
@@ -191,6 +194,8 @@ def getCWEsAttack():
 
 
 if __name__ == "__main__":
+  # Below will create a 'generated' folder if one doesn't already exist
+  os.makedirs("generated", exist_ok=True)
   # threatsXgroups()
   # campaignsXtechniques()
   # CWE = '121' #This is for specific CWE searching
