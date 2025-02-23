@@ -170,10 +170,21 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
   store = []
   for cveId, tactics in AttackDict.items():
     store.append([cveId,cveDict[cveId],tactics])
+
+  # below will create two files, one with all the information and one with only data that has all three bits of information attributed to it
+  reducedStore = []
+
+  for list in store:
+     if list[-1]!=[] and list[-2]!= [] and list[-2]!= ['','']:
+        reducedStore.append(list)
+  print(reducedStore)
   df = pd.DataFrame(store, columns=['CVE ID', 'Attributed CWES','Attributed Tactics'])
   timeString = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
   title = "generated/CVEtoATTACKCWE " + timeString + ".xlsx"
   df.to_excel(title, index=False)
+  dfReduced = pd.DataFrame(reducedStore, columns=['CVE ID', 'Attributed CWES','Attributed Tactics'])
+  title = "generated/CVEtoATTACKCWE[Reduced] " + timeString + ".xlsx"
+  dfReduced.to_excel(title,index=False)
   return
 
 
