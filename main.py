@@ -7,7 +7,8 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 from mitreattack.stix20 import MitreAttackData
-import xml.etree.ElementTree as ET
+import networkx as nx
+import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score
 import json
@@ -31,6 +32,82 @@ def plotLineOBF(x,y):
   plt.plot(x,c+m*x)
   print(r2_score(y,c+m*x))
   plt.show()
+  return
+
+# Function to create the undirected Graph
+def unDirectGraph(data):
+  G=nx.DiGraph()
+    # Subset put the nodes into three sections, left, middle, and right
+  print(data)
+  for cve, cwes, tactics in data:
+    G.add_node(cve, subset=1)  
+    
+
+    for cwe in cwes:
+        G.add_edge(cve, cwe)  
+        G.nodes[cwe]["subset"] = 0  
+        
+
+        for tactic in tactics:
+            G.add_edge(cve, tactic)  
+            G.nodes[tactic]["subset"] = 2  
+            
+
+  # This bit is for the layout, subset refers to the left, middle, and right of the diagram
+  pos = nx.multipartite_layout(G, subset_key="subset")
+  # pos = nx.spring_layout(G, seed=42)  
+
+  node_colors = {}
+  for node in G.nodes():
+      if "CVE" in node:
+          node_colors[node] = "blue"
+      elif "CWE" in node:
+          node_colors[node] = "orange"
+      else:
+          node_colors[node] = "red"
+
+
+  edge_x, edge_y = [], []
+  for edge in G.edges():
+      x0, y0 = pos[edge[0]]
+      x1, y1 = pos[edge[1]]
+      edge_x.extend([x0, x1, None])
+      edge_y.extend([y0, y1, None])
+
+  edge_trace = go.Scatter(
+      x=edge_x, y=edge_y,
+      line=dict(width=1, color="black"),
+      hoverinfo="none",
+      mode="lines"
+  )
+
+  node_x, node_y, node_text, node_color = [], [], [], []
+  for node in G.nodes():
+      x, y = pos[node]
+      node_x.append(x)
+      node_y.append(y)
+      node_text.append(node)
+      node_color.append(node_colors[node])
+  node_trace = go.Scatter(
+      x=node_x, y=node_y,
+      mode="markers+text",
+      marker=dict(size=12, color=node_color, line=dict(width=2)),
+      text=node_text,
+      textposition='top right',
+      hoverinfo="text"
+  )
+  fig = go.Figure(
+      data=[edge_trace, node_trace],
+      layout=go.Layout(
+          title="CVE - CWE - Tactics",
+          showlegend=False,
+          hovermode="closest",
+          margin=dict(b=0, l=0, r=0, t=40),
+          xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+          yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+      )
+  )
+  fig.show()
   return
 
 
@@ -69,6 +146,10 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
   dfReduced = pd.DataFrame(reducedStore, columns=['CVE ID', 'Attributed CWES','Attributed Tactics'])
   title = "generated/CVEtoATTACKCWE[Reduced] " + timeString + ".xlsx"
   dfReduced.to_excel(title,index=False)
+  unDirectGraph(reducedStore)
+
+
+
   return
 
 
