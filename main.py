@@ -57,10 +57,11 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
   # below will create two files, one with all the information and one with only data that has all three bits of information attributed to it
   reducedStore = []
 
-  for list in store:
-     if list[-1]!=[] and list[-2]!= [] and list[-2]!= ['','']:
-        reducedStore.append(list)
-  print(reducedStore)
+  for set in store:
+     if set[-1]!=[] and set[-2]!= [] and set[-2]!= ['','']:
+        if set[-2][0]=='':
+           set[-2].pop(0)
+        reducedStore.append(set)
   df = pd.DataFrame(store, columns=['CVE ID', 'Attributed CWES','Attributed Tactics'])
   timeString = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
   title = "generated/CVEtoATTACKCWE " + timeString + ".xlsx"
