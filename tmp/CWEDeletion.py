@@ -3,25 +3,38 @@
 import json
 import os
 
-
+def contains_cwe(json_file):
+    try:        
+        # Convert the entire JSON structure to a string and check for "CWE"
+        return "CWE" in json.dumps(data)  
+        
+    except (json.JSONDecodeError, FileNotFoundError) as e:
+        print(f"Error reading file: {e}")
+        return False
 
 for root, dirs, files in os.walk("datasets/cves"):
     for name in files:
-        
         pathInfo = os.path.join(root,name)
         if (pathInfo).endswith(".json") and any(f"\\{year}\\" in pathInfo for year in range(2009, 2020)):
-            print(pathInfo)
             data=json.load(open(pathInfo, encoding='utf-8'))
-            CVEs = data.get("containers", {}).get("cna",{}).get("problemTypes",[])
-            for problem in CVEs:
-                for cweId in problem.get("descriptions",[]):
-                        # print(data.get("cveMetadata",{}).get("cveId",[]))
-                        if cweId.get("cweId", "") == '':
-                            print("Deleting")
-                            os.remove(pathInfo)
-                            break
-                        break
-                break
+            print(pathInfo)
+            print(contains_cwe(data))
+
+
+
+
+
+# Below code didn't take out any time CWE wasn't mentioned at all. It also didn't check the legacy information, above is a simplier way to extract the information
+            # CVEs = data.get("containers", {}).get("cna",{}).get("problemTypes",[])
+            # for problem in CVEs:
+            #     for cweId in problem.get("descriptions",[]):
+            #             # print(data.get("cveMetadata",{}).get("cveId",[]))
+            #             if cweId.get("cweId", "") == '':
+            #                 print("Deleting")
+            #                 os.remove(pathInfo)
+            #                 break
+            #             break
+            #     break
                         
                         
                              
