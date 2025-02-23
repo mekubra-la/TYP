@@ -3,11 +3,15 @@
 import json
 import os
 
-def contains_cwe(json_file):
+def contains_cwe(json_file,pathInfo):
     try:        
         # Convert the entire JSON structure to a string and check for "CWE"
-        return "CWE" in json.dumps(data)  
-        
+        if( "CWE" in json.dumps(data)  ):
+            
+            return True
+        else:
+            os.remove(pathInfo)
+            return False
     except (json.JSONDecodeError, FileNotFoundError) as e:
         print(f"Error reading file: {e}")
         return False
@@ -15,10 +19,10 @@ def contains_cwe(json_file):
 for root, dirs, files in os.walk("datasets/cves"):
     for name in files:
         pathInfo = os.path.join(root,name)
-        if (pathInfo).endswith(".json") and any(f"\\{year}\\" in pathInfo for year in range(2009, 2020)):
+        if (pathInfo).endswith(".json") and any(f"\\{year}\\" in pathInfo for year in range(2008, 2021)):
             data=json.load(open(pathInfo, encoding='utf-8'))
             print(pathInfo)
-            print(contains_cwe(data))
+            print(contains_cwe(data,pathInfo))
 
 
 
