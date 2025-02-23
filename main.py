@@ -2,6 +2,9 @@
 # To install the required libraries, run the following command in the terminal:
 # pip install -r requirements.txt
 
+# To generate new requirements.txt use:
+# python -m pigar generate
+
 # Imports:
 from datetime import datetime
 import numpy as np
