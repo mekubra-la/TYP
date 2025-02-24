@@ -37,6 +37,27 @@ def plotLineOBF(x,y):
   plt.show()
   return
 
+
+
+def statisticalAnalysis(data):
+  x=[]
+  y=[]
+  # For each CVE, count the amount of CWEs vs Tactics
+  for cve, cwes, tactics in data:
+     x=np.append(x,len(tactics))
+     y=np.append(y,len(cwes))
+     plt.annotate(cve,(len(tactics),len(cwes)))
+  plotLineOBF(x,y)
+  
+
+
+
+  return
+
+
+
+
+
 # Function to create the undirected Graph
 def unDirectGraph(data):
   G=nx.DiGraph()
@@ -169,7 +190,7 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
   title = "generated/CVEtoATTACKCWE[Reduced] " + timeString + ".xlsx"
   dfReduced.to_excel(title,index=False)
   unDirectGraph(reducedStore)
-
+  statisticalAnalysis(reducedStore)
 
 
   return
