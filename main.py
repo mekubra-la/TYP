@@ -58,7 +58,8 @@ def unDirectGraph(data):
 
   # This bit is for the layout, subset refers to the left, middle, and right of the diagram
   pos = nx.multipartite_layout(G, subset_key="subset")
-  # pos = nx.spring_layout(G, seed=42)  
+  # pos = nx.spring_layout(G, seed=42) 
+  # pos = nx.kamada_kawai_layout(G,pos = pos)
 
   node_colors = {}
   for node in G.nodes():
@@ -69,20 +70,29 @@ def unDirectGraph(data):
       else:
           node_colors[node] = "red"
 
-
-  edge_x, edge_y = [], []
+# This bit will make sure it's slightly more visible 
+  for node, (x, y) in pos.items():
+    if G.nodes[node]["subset"] == 0: 
+        pos[node] = (x, y * 3)  
+    elif G.nodes[node]["subset"] == 2: 
+        pos[node] = (x, y * 5)  
+  edge_x, edge_y,edge_text = [], [],[]
   for edge in G.edges():
       x0, y0 = pos[edge[0]]
       x1, y1 = pos[edge[1]]
       edge_x.extend([x0, x1, None])
       edge_y.extend([y0, y1, None])
+      edge_text.append(f"{edge[0]} -> {edge[1]}")  # Format hover text
+      
 
   edge_trace = go.Scatter(
       x=edge_x, y=edge_y,
       line=dict(width=1, color="black"),
-      hoverinfo="none",
+      hoverinfo="text",
+      hovertext=edge_text,
       mode="lines"
   )
+
 
   node_x, node_y, node_text, node_color = [], [], [], []
   for node in G.nodes():
@@ -99,10 +109,14 @@ def unDirectGraph(data):
       textposition='top right',
       hoverinfo="text"
   )
+
+
+
+  
   fig = go.Figure(
       data=[edge_trace, node_trace],
       layout=go.Layout(
-          title="CVE - CWE - Tactics",
+          title="CWE <- CVE -> Tactics",
           showlegend=False,
           hovermode="closest",
           margin=dict(b=0, l=0, r=0, t=40),
