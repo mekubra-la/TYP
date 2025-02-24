@@ -71,28 +71,27 @@ def unDirectGraph(data):
           node_colors[node] = "red"
 
 # This bit will make sure it's slightly more visible 
+  node_hover_text=[]
   for node, (x, y) in pos.items():
     if G.nodes[node]["subset"] == 0: 
         pos[node] = (x, y * 3)  
     elif G.nodes[node]["subset"] == 2: 
         pos[node] = (x, y * 5)  
-  edge_x, edge_y,edge_text = [], [],[]
+
+
+  edge_x, edge_y = [], []
   for edge in G.edges():
       x0, y0 = pos[edge[0]]
       x1, y1 = pos[edge[1]]
       edge_x.extend([x0, x1, None])
       edge_y.extend([y0, y1, None])
-      edge_text.append(f"{edge[0]} -> {edge[1]}")  # Format hover text
-      
 
   edge_trace = go.Scatter(
       x=edge_x, y=edge_y,
       line=dict(width=1, color="black"),
       hoverinfo="text",
-      hovertext=edge_text,
       mode="lines"
   )
-
 
   node_x, node_y, node_text, node_color = [], [], [], []
   for node in G.nodes():
@@ -101,18 +100,24 @@ def unDirectGraph(data):
       node_y.append(y)
       node_text.append(node)
       node_color.append(node_colors[node])
+      outgoing = list(G.successors(node))  
+      incoming = list(G.predecessors(node))  
+      hover_info = f"{node}:\n"
+      if outgoing:
+          hover_info += f"<br>{'<br>'.join(outgoing)}"
+      if incoming:
+          hover_info += f"<br>{'<br>'.join(incoming)}"
+
+      node_hover_text.append(hover_info)
   node_trace = go.Scatter(
       x=node_x, y=node_y,
       mode="markers+text",
       marker=dict(size=12, color=node_color, line=dict(width=2)),
       text=node_text,
       textposition='top right',
-      hoverinfo="text"
+      hoverinfo="text",
+      hovertext=node_hover_text
   )
-
-
-
-  
   fig = go.Figure(
       data=[edge_trace, node_trace],
       layout=go.Layout(
