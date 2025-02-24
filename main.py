@@ -17,6 +17,7 @@ from sklearn.metrics import r2_score
 import json
 import os
 from collections import defaultdict
+from collections import Counter
 # Setup:
 
 # For Att&ck:
@@ -42,15 +43,22 @@ def plotLineOBF(x,y):
 def statisticalAnalysis(data):
   x=[]
   y=[]
+  tacticList=[]
   # For each CVE, count the amount of CWEs vs Tactics
   for cve, cwes, tactics in data:
      x=np.append(x,len(tactics))
      y=np.append(y,len(cwes))
      plt.annotate(cve,(len(tactics),len(cwes)))
+     tacticList.extend(tactics)
+
+  #  Find the most common tactic
+  print(Counter(tacticList).most_common(1)[0])
   plotLineOBF(x,y)
-  
-
-
+  # Taking most common tactic and finding the associated mitigations
+  stixId = mitreAttack.get_object_by_attack_id(Counter(tacticList).most_common(1)[0][0],"attack-pattern")
+  mitigations = mitreAttack.get_mitigations_mitigating_technique(stixId.id)
+  for mitigation in mitigations:
+     print(f"{mitigation['object'].name}")
 
   return
 
