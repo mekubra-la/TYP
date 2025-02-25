@@ -69,7 +69,6 @@ def statisticalAnalysis(data):
 def unDirectGraph(data):
   G=nx.DiGraph()
     # Subset put the nodes into three sections, left, middle, and right
-  print(data)
   for cve, cwes, tactics in data:
     G.add_node(cve, subset=1)  
     
@@ -197,13 +196,15 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
     for tactic in tactics:
       if tactic not in tacticDict:
         print(tactic)
-        stixId = mitreAttack.get_object_by_attack_id(str(tactic),"attack-pattern")
-        mitigations = mitreAttack.get_mitigations_mitigating_technique(stixId.id)
-        for mitigation in mitigations:
-          tacticDict[str(tactic)].append(mitigation['object'].name)
-
-  print(tacticDict)
-  
+        stixId = mitreAttack.get_object_by_attack_id(str(tactic).strip(),"attack-pattern")
+        try:
+          mitigations = mitreAttack.get_mitigations_mitigating_technique(stixId.id)
+          for mitigation in mitigations:
+            tacticDict[str(tactic)].append(mitigation['object'].name)
+        except AttributeError as error:
+          # Errors appear to be Tactics that exist in the other matrices (Not enterprise)
+          print(error)
+          print(f"Error with {tactic}")
   
   df = pd.DataFrame(store, columns=['CVE ID', 'Attributed CWES','Attributed Tactics'])
   timeString = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
