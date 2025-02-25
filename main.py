@@ -64,7 +64,7 @@ def statisticalAnalysis(data):
 def unDirectGraph(data):
   G=nx.DiGraph()
     # Subset put the nodes into three sections, left, middle, and right
-  for cve, cwes, tactics in data:
+  for cve, cwes, tactics,mitigations in data:
     G.add_node(cve, subset=1)  
     
 
@@ -72,10 +72,15 @@ def unDirectGraph(data):
         G.add_edge(cve, cwe)  
         G.nodes[cwe]["subset"] = 0  
         
-
+    tacticNum=0
     for tactic in tactics:
         G.add_edge(cve, tactic)  
-        G.nodes[tactic]["subset"] = 2  
+        G.nodes[tactic]["subset"] = 2
+        # Get tactic, find all mitigations, add nodes for it TODO
+        for mitigation in mitigations[tacticNum]:
+            G.add_edge(tactic,mitigation)
+            G.nodes[mitigation]["subset"]=3
+        tacticNum =+ 1
             
 
   # This bit is for the layout, subset refers to the left, middle, and right of the diagram
@@ -89,6 +94,8 @@ def unDirectGraph(data):
           node_colors[node] = "blue"
       elif "CWE" in node:
           node_colors[node] = "orange"
+      elif "Mitigation" in node:
+         node_colors[node] = "black"
       else:
           node_colors[node] = "red"
 
@@ -99,6 +106,8 @@ def unDirectGraph(data):
         pos[node] = (x, y * 3)  
     elif G.nodes[node]["subset"] == 2: 
         pos[node] = (x, y * 5)  
+    elif G.nodes[node]["subset"]==3:
+       pos[node] = (x,y * 5)
 
 
   edge_x, edge_y = [], []
@@ -143,7 +152,7 @@ def unDirectGraph(data):
   fig = go.Figure(
       data=[edge_trace, node_trace],
       layout=go.Layout(
-          title="CWE <- CVE -> Tactics",
+          title="CWE <- CVE -> Tactics -> Mitigations",
           showlegend=False,
           hovermode="closest",
           margin=dict(b=0, l=0, r=0, t=40),
@@ -188,24 +197,24 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
   tacticErrorList = []
   # Using another list[reducedstoremitigation] for now, to avoid adding it to the graph for now
 
-# TODO use a dictionary to store mitigations to reduce processing
+# TODO use a dictionary to store mitigations to reduce processing!
 
   reducedStoreMitigation=[]
   for cve,cwe, tactics in reducedStore:
-    mitigationList=[]
+    overallMitigations=[]
     for tactic in tactics:
         stixId = mitreAttack.get_object_by_attack_id(str(tactic).strip(),"attack-pattern")
         try:
-          mitigations = mitreAttack.get_mitigations_mitigating_technique(stixId.id)
-          for mitigation in mitigations:
-            mitigationList.append(mitigation['object'].name)
+          if tactic not in tacticDict:
+            mitigations = mitreAttack.get_mitigations_mitigating_technique(stixId.id)
+            for mitigation in mitigations:
+              tacticDict[tactic].append(mitigation['object'].name)
         except AttributeError:
           # Errors appear to be Tactics that exist in the other matrices (Not enterprise)
-          if tactic not in tacticErrorList:
+          if str(tactic).strip() not in tacticErrorList:
              tacticErrorList.append(tactic)
-    reducedStoreMitigation.append((cve,cwe,tactics,mitigationList))
-         
-         
+        overallMitigations.append(tacticDict[tactic])
+    reducedStoreMitigation.append((cve,cwe,tactics,overallMitigations))
   print(reducedStoreMitigation)
   print(f"Errors occured with tacitcs: {tacticErrorList}")
 
@@ -219,7 +228,7 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
   dfReduced = pd.DataFrame(reducedStoreMitigation, columns=['CVE ID', 'Attributed CWES','Attributed Tactics','Mitigations'])
   title = "generated/CVEtoATTACKCWE[Reduced] " + timeString + ".xlsx"
   dfReduced.to_excel(title,index=False)
-  unDirectGraph(reducedStore)
+  unDirectGraph(reducedStoreMitigation)
   statisticalAnalysis(reducedStore)
 
 
