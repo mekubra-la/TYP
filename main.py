@@ -34,7 +34,7 @@ def plotLineOBF(x,y):
   plt.scatter(x,y)
   m,c=np.polyfit(x,y,1)
   plt.plot(x,c+m*x)
-  print(r2_score(y,c+m*x))
+  # print(r2_score(y,c+m*x))
   plt.show()
   return
 
@@ -54,11 +54,6 @@ def statisticalAnalysis(data):
   #  Find the most common tactic
   print(Counter(tacticList).most_common(1)[0])
   plotLineOBF(x,y)
-  # Taking most common tactic and finding the associated mitigations
-  stixId = mitreAttack.get_object_by_attack_id(Counter(tacticList).most_common(1)[0][0],"attack-pattern")
-  mitigations = mitreAttack.get_mitigations_mitigating_technique(stixId.id)
-  for mitigation in mitigations:
-     print(f"{mitigation['object'].name}")
   return
 
 
@@ -191,11 +186,10 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
   # Now get all the mitiagtions for each of the tactics
   # TODO Finish this section - Check T1477
   tacticDict = defaultdict(list)
-  tacticList = []
+  tacticErrorList = []
   for _,_, tactics in reducedStore:
     for tactic in tactics:
       if tactic not in tacticDict:
-        print(tactic)
         stixId = mitreAttack.get_object_by_attack_id(str(tactic).strip(),"attack-pattern")
         try:
           mitigations = mitreAttack.get_mitigations_mitigating_technique(stixId.id)
@@ -203,9 +197,10 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
             tacticDict[str(tactic)].append(mitigation['object'].name)
         except AttributeError as error:
           # Errors appear to be Tactics that exist in the other matrices (Not enterprise)
-          print(error)
-          print(f"Error with {tactic}")
-  
+          if tactic not in tacticErrorList:
+             tacticErrorList.append(tactic)
+
+  print(f"Errors occured with tacitcs: {tacticErrorList}")
   df = pd.DataFrame(store, columns=['CVE ID', 'Attributed CWES','Attributed Tactics'])
   timeString = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
   title = "generated/CVEtoATTACKCWE " + timeString + ".xlsx"
