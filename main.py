@@ -59,7 +59,6 @@ def statisticalAnalysis(data):
   mitigations = mitreAttack.get_mitigations_mitigating_technique(stixId.id)
   for mitigation in mitigations:
      print(f"{mitigation['object'].name}")
-
   return
 
 
@@ -80,9 +79,9 @@ def unDirectGraph(data):
         G.nodes[cwe]["subset"] = 0  
         
 
-        for tactic in tactics:
-            G.add_edge(cve, tactic)  
-            G.nodes[tactic]["subset"] = 2  
+    for tactic in tactics:
+        G.add_edge(cve, tactic)  
+        G.nodes[tactic]["subset"] = 2  
             
 
   # This bit is for the layout, subset refers to the left, middle, and right of the diagram
@@ -190,6 +189,22 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
         if set[-2][0]=='':
            set[-2].pop(0)
         reducedStore.append(set)
+  # Now get all the mitiagtions for each of the tactics
+  # TODO Finish this section - Check T1477
+  tacticDict = defaultdict(list)
+  tacticList = []
+  for _,_, tactics in reducedStore:
+    for tactic in tactics:
+      if tactic not in tacticDict:
+        print(tactic)
+        stixId = mitreAttack.get_object_by_attack_id(str(tactic),"attack-pattern")
+        mitigations = mitreAttack.get_mitigations_mitigating_technique(stixId.id)
+        for mitigation in mitigations:
+          tacticDict[str(tactic)].append(mitigation['object'].name)
+
+  print(tacticDict)
+  
+  
   df = pd.DataFrame(store, columns=['CVE ID', 'Attributed CWES','Attributed Tactics'])
   timeString = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
   title = "generated/CVEtoATTACKCWE " + timeString + ".xlsx"
