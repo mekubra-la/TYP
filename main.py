@@ -184,28 +184,39 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
            set[-2].pop(0)
         reducedStore.append(set)
   # Now get all the mitiagtions for each of the tactics
-  # TODO Finish this section - Check T1477
   tacticDict = defaultdict(list)
   tacticErrorList = []
-  for _,_, tactics in reducedStore:
+  # Using another list[reducedstoremitigation] for now, to avoid adding it to the graph for now
+
+# TODO use a dictionary to store mitigations to reduce processing
+
+  reducedStoreMitigation=[]
+  for cve,cwe, tactics in reducedStore:
+    mitigationList=[]
     for tactic in tactics:
-      if tactic not in tacticDict:
         stixId = mitreAttack.get_object_by_attack_id(str(tactic).strip(),"attack-pattern")
         try:
           mitigations = mitreAttack.get_mitigations_mitigating_technique(stixId.id)
           for mitigation in mitigations:
-            tacticDict[str(tactic)].append(mitigation['object'].name)
-        except AttributeError as error:
+            mitigationList.append(mitigation['object'].name)
+        except AttributeError:
           # Errors appear to be Tactics that exist in the other matrices (Not enterprise)
           if tactic not in tacticErrorList:
              tacticErrorList.append(tactic)
-
+    reducedStoreMitigation.append((cve,cwe,tactics,mitigationList))
+         
+         
+  print(reducedStoreMitigation)
   print(f"Errors occured with tacitcs: {tacticErrorList}")
+
+
+
+
   df = pd.DataFrame(store, columns=['CVE ID', 'Attributed CWES','Attributed Tactics'])
   timeString = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
   title = "generated/CVEtoATTACKCWE " + timeString + ".xlsx"
   df.to_excel(title, index=False)
-  dfReduced = pd.DataFrame(reducedStore, columns=['CVE ID', 'Attributed CWES','Attributed Tactics'])
+  dfReduced = pd.DataFrame(reducedStoreMitigation, columns=['CVE ID', 'Attributed CWES','Attributed Tactics','Mitigations'])
   title = "generated/CVEtoATTACKCWE[Reduced] " + timeString + ".xlsx"
   dfReduced.to_excel(title,index=False)
   unDirectGraph(reducedStore)
