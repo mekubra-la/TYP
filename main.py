@@ -246,7 +246,7 @@ def getCWEsAttack():
   for root, dirs, files in os.walk("datasets/cves"):
       for name in files:
         pathInfo = os.path.join(root,name)
-        if (pathInfo).endswith(".json") and any(f"\\{year}\\" in pathInfo for year in range(2008, 2021)):
+        if (pathInfo).endswith(".json") and any(f"\\{year}\\" in pathInfo for year in range(2008, 2025)):
             data=json.load(open(pathInfo, encoding='utf-8'))
             CVECNA = data.get("containers", {}).get("cna",{}).get("problemTypes",[])
             for problem in CVECNA:
@@ -263,7 +263,9 @@ def getCWEsAttack():
                 
   # Below extracts the CVE-ATT&CK Mapping into a dictionary to make it easier for analysis
   AttackDict = defaultdict(list)
-  data = json.load(open("datasets/cve-10.21.2021_attack-9.0-enterprise_json.json",'r',encoding='utf-8'))
+  # data = json.load(open("datasets/cve-10.21.2021_attack-9.0-enterprise_json.json",'r',encoding='utf-8'))
+  data = json.load(open("datasets\kev-02.13.2025_attack-15.1-enterprise_json.json",'r',encoding='utf-8'))
+
   objects = data.get("mapping_objects",[])
   for object in objects:
       AttackDict[str(object.get("capability_id",[]))].append(object.get('attack_object_id',[]))

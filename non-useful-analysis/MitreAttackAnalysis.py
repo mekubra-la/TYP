@@ -75,3 +75,6 @@ def campaignsXtechniques():
   title = "generated/Campaigns " + timeString + ".xlsx"
   df.to_excel(title, index=False)
   return
+if __name__ == "__main__":
+  threatsXgroups()
+  campaignsXtechniques()
