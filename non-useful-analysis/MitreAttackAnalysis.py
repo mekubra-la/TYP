@@ -10,6 +10,8 @@ mitreAttack = MitreAttackData("datasets/enterprise-attack.json")
 # Plot function for Line of Best Fit and R^2 value
 def plotLineOBF(x,y):
   plt.scatter(x,y)
+  plt.xlabel("Amount of Techniques")
+  plt.ylabel("Amount of Software")
   m,c=np.polyfit(x,y,1)
   plt.plot(x,c+m*x)
   print(r2_score(y,c+m*x))
@@ -75,8 +77,6 @@ def campaignsXtechniques():
   title = "generated/Campaigns " + timeString + ".xlsx"
   df.to_excel(title, index=False)
   return
-
-
 if __name__ == "__main__":
   threatsXgroups()
   campaignsXtechniques()
