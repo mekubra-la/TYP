@@ -14,3 +14,6 @@ def getCWESimpleStableDraft():
             if child2.attrib['Structure'] == 'Simple' and (child2.attrib['Status']=='Stable' or child2.attrib['Status']=='Draft'):
               print(child2.attrib['ID'], ": ",child2.attrib['Name'])    
   return
+
+if __name__ == "__main__":
+  getCWESimpleStableDraft()

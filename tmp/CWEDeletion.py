@@ -7,7 +7,6 @@ def contains_cwe(json_file,pathInfo):
     try:        
         # Convert the entire JSON structure to a string and check for "CWE"
         if( "CWE" in json.dumps(data)  ):
-            
             return True
         else:
             os.remove(pathInfo)
@@ -19,6 +18,7 @@ def contains_cwe(json_file,pathInfo):
 for root, dirs, files in os.walk("datasets/cves"):
     for name in files:
         pathInfo = os.path.join(root,name)
+        # Only go through the relevant years
         if (pathInfo).endswith(".json") and any(f"\\{year}\\" in pathInfo for year in range(2008, 2021)):
             data=json.load(open(pathInfo, encoding='utf-8'))
             print(pathInfo)
