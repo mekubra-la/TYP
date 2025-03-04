@@ -17,7 +17,13 @@ def plotLineOBF(x,y):
   print(r2_score(y,c+m*x))
   plt.show()
   return
-
+def threatXmitigation(tactic):
+  stixId = mitreAttack.get_object_by_attack_id(str(tactic).strip(),"attack-pattern")
+  mitigations = mitreAttack.get_mitigations_mitigating_technique(stixId.id)
+  print(mitigations)
+  for mitigation in mitigations:
+    print(mitigation['object'].name)
+  return
 
 def threatsXgroups():
   # Get all MITRE ATTACK Threat actor groups and how many Techniques associated with each
@@ -78,5 +84,6 @@ def campaignsXtechniques():
   df.to_excel(title, index=False)
   return
 if __name__ == "__main__":
-  threatsXgroups()
-  campaignsXtechniques()
+  # threatsXgroups()
+  # campaignsXtechniques()
+  threatXmitigation("T1083")

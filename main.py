@@ -18,8 +18,9 @@ import json
 import os
 from collections import defaultdict
 from collections import Counter
+import time
 # Setup:
-
+start =0
 # For Att&ck:
 mitreAttack = MitreAttackData("datasets/enterprise-attack.json")
 
@@ -228,6 +229,8 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
   dfReduced = pd.DataFrame(reducedStoreMitigation, columns=['CVE ID', 'Attributed CWES','Attributed Tactics','Mitigations'])
   title = "generated/CVEtoATTACKCWE[Reduced] " + timeString + ".xlsx"
   dfReduced.to_excel(title,index=False)
+  end = time.time()
+  print(f"Time taken: {end-start}")
   unDirectGraph(reducedStoreMitigation)
   statisticalAnalysis(reducedStore)
 
@@ -237,7 +240,7 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
 
 def getCWEsAttack():
 # This function maps all the CWE's to Tactics from ATT&CK, however, the mappings between CVE to ATT&CK are lacking in amount, resulting in large amounts of CVE's with no assocaited Tactics
-
+  start = time.time()
 # For speed, this set of code reads all the cves into a dictionary with the key being the CWE Id associatied with it.
   cveDict = defaultdict(list)
   # The below dictionary is the CVE as the key and the CWE as the items while the above dictionary is the CWE as the key and the CVE as the items
