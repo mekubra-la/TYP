@@ -241,7 +241,7 @@ def getCWEsAttack():
   AttackDict = defaultdict(list)
   # data = json.load(open("datasets/cve-10.21.2021_attack-9.0-enterprise_json.json",'r',encoding='utf-8'))
   data = json.load(open("datasets\kev-02.13.2025_attack-15.1-enterprise_json.json",'r',encoding='utf-8'))
-
+  cveErrorList=[]
   objects = data.get("mapping_objects",[])
   for object in objects:
       AttackDict[str(object.get("capability_id",[]))].append(object.get('attack_object_id',[]))
@@ -263,9 +263,9 @@ def getCWEsAttack():
                 for cweId in problem.get("descriptions",[]):
                   cveReverseDict[str(data.get("cveMetadata",{}).get("cveId",[]))].append(cweId.get("cweId", ""))
     except FileNotFoundError:
-        print(f"{key} not found")         
+        cveErrorList.append(key)   
 
-
+  print(f"CVE's without CWE: {cveErrorList}")      
   CVEtoATTACKCWE(cveReverseDict,AttackDict)
   return
 
