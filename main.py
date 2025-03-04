@@ -43,7 +43,7 @@ def statisticalAnalysis(data):
   x=[]
   y=[]
   tacticList=[]
-  fig, ax = plt.subplots(layout='constrained')
+  _, ax = plt.subplots(layout='constrained')
 
   # For each CVE, count the amount of CWEs vs Tactics
   for cve, cwes, tactics,mitigations in data:
@@ -55,8 +55,6 @@ def statisticalAnalysis(data):
   cve = [cve for cve,_,_,_ in data]
   tactics = [len(tactics) for _,_,tactics,_ in data]
   cwes = [len(cwes) for _,cwes,_,_ in data]
-  # This bit needs to be counting the mitigations not lists of mitigations
-  print([sum(len(mitigation) for mitigation in mitigations )for  _,_,_,mitigations in data])
   mitigations= [sum(len(mitigation) for mitigation in mitigations )for  _,_,_,mitigations in data]
   x = np.arange(len(data))
   
@@ -93,7 +91,6 @@ def unDirectGraph(data):
     for tactic in tactics:
         G.add_edge(cve, tactic)  
         G.nodes[tactic]["subset"] = 2
-        # Get tactic, find all mitigations, add nodes for it TODO
         for mitigation in mitigations[tacticNum]:
             G.add_edge(tactic,mitigation)
             G.nodes[mitigation]["subset"]=3
@@ -214,7 +211,6 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
   tacticErrorList = []
   # Using another list[reducedstoremitigation] for now, to avoid adding it to the graph for now
 
-# TODO use a dictionary to store mitigations to reduce processing!
 
   reducedStoreMitigation=[]
   for cve,cwe, tactics in reducedStore:
@@ -232,7 +228,6 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
              tacticErrorList.append(tactic)
         overallMitigations.append(tacticDict[tactic])
     reducedStoreMitigation.append((cve,cwe,tactics,overallMitigations))
-  print(reducedStoreMitigation)
   print(f"Errors occured with tacitcs: {tacticErrorList}")
 
 
@@ -254,30 +249,8 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
 
 def getCWEsAttack():
 # This function maps all the CWE's to Tactics from ATT&CK, however, the mappings between CVE to ATT&CK are lacking in amount, resulting in large amounts of CVE's with no assocaited Tactics
-# For speed, this set of code reads all the cves into a dictionary with the key being the CWE Id associatied with it.
-  cveDict = defaultdict(list)
   # The below dictionary is the CVE as the key and the CWE as the items while the above dictionary is the CWE as the key and the CVE as the items
   cveReverseDict = defaultdict(list)
-
-  for root, dirs, files in os.walk("datasets/cves"):
-      for name in files:
-        pathInfo = os.path.join(root,name)
-        # Should be between 2008-2025 [excludes 2025]
-        if (pathInfo).endswith(".json") and any(f"\\{year}\\" in pathInfo for year in range(2008, 2025)):
-            data=json.load(open(pathInfo, encoding='utf-8'))
-            CVECNA = data.get("containers", {}).get("cna",{}).get("problemTypes",[])
-            for problem in CVECNA:
-                for cweId in problem.get("descriptions",[]):
-                    cveDict[str(cweId.get("cweId", "")[4:])].append(data.get("cveMetadata",{}).get("cveId",[])) 
-                    cveReverseDict[str(data.get("cveMetadata",{}).get("cveId",[]))].append(cweId.get("cweId", ""))
-            CVEADP=data.get("containers",{}).get("adp",[])
-            for entry in CVEADP:
-              problemTypes = entry.get("problemTypes",[]) 
-              for problem in problemTypes:
-                  for cweId in problem.get("descriptions",[]):
-                    cveDict[str(cweId.get("cweId", "")[4:])].append(data.get("cveMetadata",{}).get("cveId",[])) 
-                    cveReverseDict[str(data.get("cveMetadata",{}).get("cveId",[]))].append(cweId.get("cweId", ""))
-                
   # Below extracts the CVE-ATT&CK Mapping into a dictionary to make it easier for analysis
   AttackDict = defaultdict(list)
   # data = json.load(open("datasets/cve-10.21.2021_attack-9.0-enterprise_json.json",'r',encoding='utf-8'))
@@ -286,6 +259,26 @@ def getCWEsAttack():
   objects = data.get("mapping_objects",[])
   for object in objects:
       AttackDict[str(object.get("capability_id",[]))].append(object.get('attack_object_id',[]))
+# below if an efficent way to find the cve json file by the name and extract only that from the files rather than iterating through everything
+  for key in AttackDict.keys():
+    year = key.split("-")[1]
+    arbit = key.split("-")[2][:-3]
+    path = f"datasets/cves/{year}/{arbit}xxx/{key}.json"
+    try:
+          data = json.load(open(path, encoding='utf-8'))
+          CVECNA = data.get("containers", {}).get("cna",{}).get("problemTypes",[])
+          for problem in CVECNA:
+              for cweId in problem.get("descriptions",[]):
+                  cveReverseDict[str(data.get("cveMetadata",{}).get("cveId",[]))].append(cweId.get("cweId", ""))
+          CVEADP=data.get("containers",{}).get("adp",[])
+          for entry in CVEADP:
+            problemTypes = entry.get("problemTypes",[]) 
+            for problem in problemTypes:
+                for cweId in problem.get("descriptions",[]):
+                  cveReverseDict[str(data.get("cveMetadata",{}).get("cveId",[]))].append(cweId.get("cweId", ""))
+    except FileNotFoundError:
+        print(f"{key} not found")         
+
 
   # CWEtoATTACK(cveDict, AttackDict)
   CVEtoATTACKCWE(cveReverseDict,AttackDict)
