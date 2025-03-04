@@ -18,9 +18,7 @@ import json
 import os
 from collections import defaultdict
 from collections import Counter
-import time
 # Setup:
-start =0
 # For Att&ck:
 mitreAttack = MitreAttackData("datasets/enterprise-attack.json")
 
@@ -45,16 +43,34 @@ def statisticalAnalysis(data):
   x=[]
   y=[]
   tacticList=[]
-  # For each CVE, count the amount of CWEs vs Tactics
-  for cve, cwes, tactics in data:
-     x=np.append(x,len(tactics))
-     y=np.append(y,len(cwes))
-     plt.annotate(cve,(len(tactics),len(cwes)))
-     tacticList.extend(tactics)
+  fig, ax = plt.subplots(layout='constrained')
 
+  # For each CVE, count the amount of CWEs vs Tactics
+  for cve, cwes, tactics,mitigations in data:
+    #  x=np.append(x,len(tactics))
+    #  y=np.append(y,len(cwes))
+    #  plt.annotate(cve,(len(tactics),len(cwes)))
+     tacticList.extend(tactics)
+     
+  cve = [cve for cve,_,_,_ in data]
+  tactics = [len(tactics) for _,_,tactics,_ in data]
+  cwes = [len(cwes) for _,cwes,_,_ in data]
+  # This bit needs to be counting the mitigations not lists of mitigations
+  print([sum(len(mitigation) for mitigation in mitigations )for  _,_,_,mitigations in data])
+  mitigations= [sum(len(mitigation) for mitigation in mitigations )for  _,_,_,mitigations in data]
+  x = np.arange(len(data))
+  
+  ax.bar(x-.5,tactics,0.5,label='Tactics')
+  ax.bar(x,cwes,0.5,label='CWES')
+  ax.bar(x+.5,mitigations,.5,label='Mitigations')
+  ax.set_xticks(x)
+  ax.set_xticklabels(cve)
   #  Find the most common tactic
   print(Counter(tacticList).most_common(1)[0])
-  plotLineOBF(x,y)
+
+  
+  plt.show()
+
   return
 
 
@@ -229,10 +245,8 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
   dfReduced = pd.DataFrame(reducedStoreMitigation, columns=['CVE ID', 'Attributed CWES','Attributed Tactics','Mitigations'])
   title = "generated/CVEtoATTACKCWE[Reduced] " + timeString + ".xlsx"
   dfReduced.to_excel(title,index=False)
-  end = time.time()
-  print(f"Time taken: {end-start}")
   unDirectGraph(reducedStoreMitigation)
-  statisticalAnalysis(reducedStore)
+  statisticalAnalysis(reducedStoreMitigation)
 
 
   return
@@ -240,7 +254,6 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
 
 def getCWEsAttack():
 # This function maps all the CWE's to Tactics from ATT&CK, however, the mappings between CVE to ATT&CK are lacking in amount, resulting in large amounts of CVE's with no assocaited Tactics
-  start = time.time()
 # For speed, this set of code reads all the cves into a dictionary with the key being the CWE Id associatied with it.
   cveDict = defaultdict(list)
   # The below dictionary is the CVE as the key and the CWE as the items while the above dictionary is the CWE as the key and the CVE as the items
@@ -249,6 +262,7 @@ def getCWEsAttack():
   for root, dirs, files in os.walk("datasets/cves"):
       for name in files:
         pathInfo = os.path.join(root,name)
+        # Should be between 2008-2025 [excludes 2025]
         if (pathInfo).endswith(".json") and any(f"\\{year}\\" in pathInfo for year in range(2008, 2025)):
             data=json.load(open(pathInfo, encoding='utf-8'))
             CVECNA = data.get("containers", {}).get("cna",{}).get("problemTypes",[])
