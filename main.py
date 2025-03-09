@@ -178,20 +178,6 @@ def unDirectGraph(data):
   return
 
 
-def CWEtoATTACK(cveDict, AttackDict):
-  store = []
-  #  This function will take the CWEs and use it to find the CVE then the TTP, this results in very little mapping
-  for cweId, cveList in cveDict.items():
-    tempAttack = []
-    for cveId in cveList:
-        tempAttack.append(AttackDict[cveId])
-    store.append([cweId,cveList,tempAttack])
-  df = pd.DataFrame(store, columns=['CWE ID', 'Attributed CVEs','Attributed Tactics'])
-  timeString = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-  title = "generated/CWEtoTTP " + timeString + ".xlsx"
-  df.to_excel(title, index=False)
-  return
-
 def CVEtoATTACKCWE(cveDict,AttackDict):
   # This function uses CVE as the Join between CWES and tactics. This provides the right data needed for further analysis
   store = []
@@ -255,7 +241,7 @@ def getCWEsAttack():
   AttackDict = defaultdict(list)
   # data = json.load(open("datasets/cve-10.21.2021_attack-9.0-enterprise_json.json",'r',encoding='utf-8'))
   data = json.load(open("datasets\kev-02.13.2025_attack-15.1-enterprise_json.json",'r',encoding='utf-8'))
-
+  cveErrorList=[]
   objects = data.get("mapping_objects",[])
   for object in objects:
       AttackDict[str(object.get("capability_id",[]))].append(object.get('attack_object_id',[]))
@@ -277,10 +263,9 @@ def getCWEsAttack():
                 for cweId in problem.get("descriptions",[]):
                   cveReverseDict[str(data.get("cveMetadata",{}).get("cveId",[]))].append(cweId.get("cweId", ""))
     except FileNotFoundError:
-        print(f"{key} not found")         
+        cveErrorList.append(key)   
 
-
-  # CWEtoATTACK(cveDict, AttackDict)
+  print(f"CVE's without CWE: {cveErrorList}")      
   CVEtoATTACKCWE(cveReverseDict,AttackDict)
   return
 
