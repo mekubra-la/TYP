@@ -33,7 +33,7 @@ def plotLineOBF(x,y):
   plt.scatter(x,y)
   m,c=np.polyfit(x,y,1)
   plt.plot(x,c+m*x)
-  # print(r2_score(y,c+m*x))
+  print(r2_score(y,c+m*x))
   plt.show()
   return
 
@@ -45,30 +45,30 @@ def statisticalAnalysis(data):
   tacticList=[]
   _, ax = plt.subplots(layout='constrained')
 
-  # For each CVE, count the amount of CWEs vs Tactics
   for cve, cwes, tactics,mitigations in data:
     #  x=np.append(x,len(tactics))
     #  y=np.append(y,len(cwes))
     #  plt.annotate(cve,(len(tactics),len(cwes)))
      tacticList.extend(tactics)
-     
+    
   cve = [cve for cve,_,_,_ in data]
   tactics = [len(tactics) for _,_,tactics,_ in data]
   cwes = [len(cwes) for _,cwes,_,_ in data]
   mitigations= [sum(len(mitigation) for mitigation in mitigations )for  _,_,_,mitigations in data]
   x = np.arange(len(data))
   
-  ax.bar(x-.5,tactics,0.5,label='Tactics')
-  ax.bar(x,cwes,0.5,label='CWES')
-  ax.bar(x+.5,mitigations,.5,label='Mitigations')
+  ax.bar(x-.25,tactics,0.25,label='Tactics')
+  ax.bar(x,cwes,0.25,label='CWES')
+  ax.bar(x+.25,mitigations,.25,label='Mitigations')
   ax.set_xticks(x)
-  ax.set_xticklabels(cve)
+  ax.set_xticklabels(cve, rotation =45, ha="right")
+  ax.set_ylabel("Amount")
+  ax.legend()
   #  Find the most common tactic
-  print(Counter(tacticList).most_common(1)[0])
-
-  
+  # print(Counter(tacticList).most_common(1)[0])
   plt.show()
-
+  plotLineOBF(np.array(tactics),np.array(mitigations))
+ 
   return
 
 
