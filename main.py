@@ -195,7 +195,6 @@ def CVEtoATTACKCWE(cveDict,AttackDict):
   # Now get all the mitiagtions for each of the tactics
   tacticDict = defaultdict(list)
   tacticErrorList = []
-  # Using another list[reducedstoremitigation] for now, to avoid adding it to the graph for now
 
 
   reducedStoreMitigation=[]
