@@ -28,27 +28,13 @@ mitreAttack = MitreAttackData("datasets/enterprise-attack.json")
 
 # ______
 
-# Plot function for Line of Best Fit and R^2 value
-def plotLineOBF(x,y):
-  plt.scatter(x,y)
-  m,c=np.polyfit(x,y,1)
-  plt.plot(x,c+m*x)
-  print(r2_score(y,c+m*x))
-  plt.show()
-  return
-
-
 
 def statisticalAnalysis(data):
   x=[]
   y=[]
   tacticList=[]
   _, ax = plt.subplots(layout='constrained')
-
   for cve, cwes, tactics,mitigations in data:
-    #  x=np.append(x,len(tactics))
-    #  y=np.append(y,len(cwes))
-    #  plt.annotate(cve,(len(tactics),len(cwes)))
      tacticList.extend(tactics)
     
   cve = [cve for cve,_,_,_ in data]
@@ -64,11 +50,26 @@ def statisticalAnalysis(data):
   ax.set_xticklabels(cve, rotation =45, ha="right")
   ax.set_ylabel("Amount")
   ax.legend()
+  plt.show()
+
+
   #  Find the most common tactic
   # print(Counter(tacticList).most_common(1)[0])
+  
+  # Below plots mitigations over tactics per cve
+  
+
+  x=np.array(tactics)
+  y=np.array(mitigations)
+  plt.scatter(x,y)
+  plt.xlabel("Tactics")
+  plt.ylabel("Mitigations")
+  # The line of best fit must pass through c
+  m=np.sum(x*y)/np.sum(x**2)
+  plt.plot(x,m*x)
+  print(r2_score(y,m*x))
+  print(f"The Line of best fit for Mitigations over Tactics per CVE is: {m}x=y")
   plt.show()
-  plotLineOBF(np.array(tactics),np.array(mitigations))
- 
   return
 
 
